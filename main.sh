@@ -44,6 +44,14 @@ show_menu() {
     echo "4. Exit"
 }
 
+show_status() {
+    ./restaurant_system show_status
+}
+
+show_memory() {
+    ./restaurant_system show_memory
+}
+
 main() {
     init_system
     

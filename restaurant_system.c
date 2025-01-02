@@ -154,6 +154,66 @@ void print_order_details(int order_id) {
     printf("Total Bill: $%.2f\n", order->total_bill);
 }
 
+void show_system_status() {
+    sem_wait(&shm_ptr->mutex);
+    printf("\nSystem Status\n");
+    printf("-------------\n");
+    printf("Total Orders: %d\n", shm_ptr->order_count);
+    
+    int new_orders = 0, in_progress = 0, completed = 0;
+    for(int i = 0; i < shm_ptr->order_count; i++) {
+        switch(shm_ptr->orders[i].status) {
+            case 0: new_orders++; break;
+            case 1: completed++; break;
+            case 2: in_progress++; break;
+        }
+    }
+    
+    printf("New Orders: %d\n", new_orders);
+    printf("In Progress: %d\n", in_progress);
+    printf("Completed: %d\n", completed);
+    
+    // Show active kitchen threads
+    printf("\nKitchen Status:\n");
+    char cmd[100];
+    sprintf(cmd, "ps -T -p %d | grep kitchen", getpid());
+    system(cmd);
+    sem_post(&shm_ptr->mutex);
+}
+
+void show_memory_usage() {
+    printf("\nMemory Usage Stats\n");
+    printf("------------------\n");
+    
+    // Show shared memory segment info
+    struct shmid_ds shm_info;
+    if (shmctl(shm_id, IPC_STAT, &shm_info) == -1) {
+        perror("shmctl");
+        return;
+    }
+    
+    printf("Shared Memory:\n");
+    printf("- Segment Size: %lu bytes\n", shm_info.shm_segsz);
+    printf("- Number of attached processes: %lu\n", shm_info.shm_nattch);
+    
+    // Calculate memory used by orders
+    size_t orders_memory = sizeof(Order) * shm_ptr->order_count;
+    printf("- Memory used by orders: %lu bytes\n", orders_memory);
+    
+    // Show process memory info
+    FILE *fp = fopen("/proc/self/status", "r");
+    if (fp) {
+        char line[128];
+        while (fgets(line, 128, fp)) {
+            if (strncmp(line, "VmSize:", 7) == 0 ||
+                strncmp(line, "VmRSS:", 6) == 0) {
+                printf("%s", line);
+            }
+        }
+        fclose(fp);
+    }
+}
+
 int main(int argc, char *argv[]) {
     if(argc < 2) {
         printf("Usage: %s [create_order|process_orders]\n", argv[0]);
@@ -163,7 +223,7 @@ int main(int argc, char *argv[]) {
     init_shared_memory();
     
     if(strcmp(argv[1], "create_order") == 0) {
-if (argc < 4 || (argc - 2) % 2 != 0) {
+        if (argc < 4 || (argc - 2) % 2 != 0) {
             printf("Invalid number of arguments for create_order\n");
             exit(1);
         }
@@ -189,6 +249,11 @@ if (argc < 4 || (argc - 2) % 2 != 0) {
             pthread_join(kitchen_threads[i], NULL);
         }
     }
-    
+    else if(strcmp(argv[1], "show_status") == 0) {
+        show_system_status();
+    }
+    else if(strcmp(argv[1], "show_memory") == 0) {
+        show_memory_usage();
+    }   
     return 0;
 }
