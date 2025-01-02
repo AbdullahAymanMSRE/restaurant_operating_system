@@ -163,10 +163,21 @@ int main(int argc, char *argv[]) {
     init_shared_memory();
     
     if(strcmp(argv[1], "create_order") == 0) {
-        // Example order creation
-        int item_ids[] = {1, 2};
-        int quantities[] = {2, 1};
-        int order_id = create_order(item_ids, quantities, 2);
+if (argc < 4 || (argc - 2) % 2 != 0) {
+            printf("Invalid number of arguments for create_order\n");
+            exit(1);
+        }
+        
+        int item_count = (argc - 2) / 2;
+        int item_ids[MAX_ITEMS];
+        int quantities[MAX_ITEMS];
+        
+        for(int i = 0; i < item_count; i++) {
+            item_ids[i] = atoi(argv[2 + i*2]);
+            quantities[i] = atoi(argv[3 + i*2]);
+        }
+        
+        int order_id = create_order(item_ids, quantities, item_count);
         print_order_details(order_id);
     }
     else if(strcmp(argv[1], "process_orders") == 0) {
