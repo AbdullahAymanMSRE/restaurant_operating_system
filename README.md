@@ -13,16 +13,19 @@ This is an operating system designed for restaurants. It contains three programs
 1. Clone the repository
 2. Run the following commands in the terminal:
 
-   - ```bash
+   ```bash
          chmod +x clients.sh staff.sh status.sh welcome.sh restaurant.sh
-     ```
+   ```
 
-     to make the scripts executable
+   to make the scripts executable
 
-   - ```bash
+   then run:
+
+   ```bash
           sudo mv clients.sh staff.sh status.sh welcome.sh restaurant.sh restaurant_system.c /usr/bin/
-     ```
-     to move the scripts to the `/usr/bin/` directory to be able to run them from anywhere in the terminal
+   ```
+
+   to move the scripts to the `/usr/bin/` directory to be able to run them from anywhere in the terminal
 
 ## Usage
 
