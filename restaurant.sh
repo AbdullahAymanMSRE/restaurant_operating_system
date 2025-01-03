@@ -6,8 +6,7 @@ show_memory() {
 
 init_system() {
     # Print welcome message 
-    chmod +x ./welcome.sh
-    ./welcome.sh
+    welcome
 
     # Compile the main C program
     gcc -o restaurant_system restaurant_system.c -pthread
