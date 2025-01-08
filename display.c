@@ -9,7 +9,7 @@ void* refresh_display(void* arg) {
         
         printf("\n===== ORDER STATUS DISPLAY =====\n");
         
-        pthread_mutex_lock(&shm->mutex);
+        pthread_mutex_lock(&shm->orders_mutex);
         for (int i = 0; i < shm->num_orders; i++) {
             Order* order = &shm->orders[i];
             if (order->status != STATUS_COMPLETED) {
@@ -30,7 +30,7 @@ void* refresh_display(void* arg) {
                 }
             }
         }
-        pthread_mutex_unlock(&shm->mutex);
+        pthread_mutex_unlock(&shm->orders_mutex);
         
         printf("\n==============================\n");
         sleep(5);  // Refresh every 5 seconds

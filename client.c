@@ -71,6 +71,9 @@ void* menu_display_thread(void* arg) {
 
 int main() {
     SharedMemory* shm = attach_shared_memory();
+
+	initialize_shared_memory(shm);
+
     
     // Create threads for order creation and menu display
     pthread_t order_thread, display_thread;
