@@ -1,5 +1,13 @@
 #!/bin/bash
 
+void order_status_callback(int order_id, const char* status) {
+    printf("\nOrder %d Update: %s\n", order_id, status);
+}
+
+create_order() {
+    printf("\nOrder %d Update: %s\n", order_id, status);
+}
+
 create_order() {
     echo "Menu:"
     echo "1. Burger ($9.99)"
@@ -16,9 +24,19 @@ create_order() {
             break
         fi
         read -p "Enter quantity: " quantity
-        items+=($item)
+        order_id=$(./restaurant_system create_order "${items[@]}" "${quantities[@]}")
+        echo "Would you like to monitor this order? (y/n)"
+        read monitor
+        if [ "$monitor" == "y" ]; then
+            ./restaurant_system monitor_order $order_id
+        fi
         quantities+=($quantity)
     done
     
-    ./restaurant_system create_order "${items[@]}" "${quantities[@]}"
+    order_id=$(./restaurant_system create_order "${items[@]}" "${quantities[@]}")
+    echo "Would you like to monitor this order? (y/n)"
+    read monitor
+    if [ "$monitor" == "y" ]; then
+        ./restaurant_system monitor_order $order_id
+    fi
 }

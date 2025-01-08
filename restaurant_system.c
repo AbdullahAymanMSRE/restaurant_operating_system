@@ -12,6 +12,8 @@
 #include <time.h>
 
 #define MAX_ORDERS 100
+#define MAX_THREADS 50
+#define MAX_OBSERVERS 20
 #define MAX_ITEMS 10
 #define SHM_SIZE 1024
 #define MAX_NOTIFICATIONS 50
@@ -33,12 +35,23 @@ typedef struct {
     char notification[100];
 } Order;
 
+typedef void (*OrderCallback)(int order_id, const char* status);
+
+typedef struct {
+    int order_id;
+    OrderCallback callback;
+} OrderObserver;
+
 typedef struct {
     Order orders[MAX_ORDERS];
     int order_count;
     MenuItem menu[MAX_ITEMS];
     int menu_size;
-    sem_t mutex;
+    pthread_mutex_t mutex;
+    pthread_cond_t order_cond;
+    OrderObserver observers[MAX_OBSERVERS];
+    int observer_count;
+    pthread_mutex_t observer_mutex;
 } SharedMemory;
 
 SharedMemory *shm_ptr;
@@ -57,8 +70,45 @@ void init_menu() {
     memcpy(shm_ptr->menu, default_menu, sizeof(default_menu));
 }
 
+void notify_observers(int order_id, const char* status) {
+    pthread_mutex_lock(&shm_ptr->observer_mutex);
+    for(int i = 0; i < shm_ptr->observer_count; i++) {
+        if(shm_ptr->observers[i].order_id == order_id || 
+           shm_ptr->observers[i].order_id == -1) {  // -1 means observe all orders
+            shm_ptr->observers[i].callback(order_id, status);
+        }
+    }
+    pthread_mutex_unlock(&shm_ptr->observer_mutex);
+}
 void init_shared_memory() {
-    key_t key = ftok("restaurant_system", 65);
+    void init_shared_memory() {
+        key_t key = ftok("restaurant_system", 65);
+        shm_id = shmget(key, sizeof(SharedMemory), IPC_CREAT | 0666);
+        if (shm_id < 0) {
+            perror("shmget");
+            exit(1);
+        }
+        
+        shm_ptr = (SharedMemory *)shmat(shm_id, NULL, 0);
+        if ((void *)shm_ptr == (void *)-1) {
+            perror("shmat");
+            exit(1);
+        }
+        
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+        
+        pthread_mutex_init(&shm_ptr->mutex, &attr);
+        pthread_mutex_init(&shm_ptr->observer_mutex, &attr);
+        pthread_cond_init(&shm_ptr->order_cond, NULL);
+        
+        shm_ptr->order_count = 0;
+        shm_ptr->observer_count = 0;
+        init_menu();
+        
+        pthread_mutexattr_destroy(&attr);
+    }
     shm_id = shmget(key, sizeof(SharedMemory), IPC_CREAT | 0666);
     if (shm_id < 0) {
         perror("shmget");
@@ -76,6 +126,39 @@ void init_shared_memory() {
     init_menu();
 }
 
+void update_order_status(int order_id, const char* notification) {
+    pthread_mutex_lock(&shm_ptr->mutex);
+    strncpy(shm_ptr->orders[order_id].notification, notification, 99);
+    pthread_mutex_unlock(&shm_ptr->mutex);
+    
+    notify_observers(order_id, notification);
+    pthread_cond_broadcast(&shm_ptr->order_cond);
+}
+
+void register_observer(int order_id, OrderCallback callback) {
+    pthread_mutex_lock(&shm_ptr->observer_mutex);
+    if(shm_ptr->observer_count < MAX_OBSERVERS) {
+        shm_ptr->observers[shm_ptr->observer_count].order_id = order_id;
+        shm_ptr->observers[shm_ptr->observer_count].callback = callback;
+        shm_ptr->observer_count++;
+    }
+    pthread_mutex_unlock(&shm_ptr->observer_mutex);
+}
+
+void unregister_observer(OrderCallback callback) {
+    pthread_mutex_lock(&shm_ptr->observer_mutex);
+    for(int i = 0; i < shm_ptr->observer_count; i++) {
+        if(shm_ptr->observers[i].callback == callback) {
+            // Remove this observer by shifting the rest down
+            for(int j = i; j < shm_ptr->observer_count - 1; j++) {
+                shm_ptr->observers[j] = shm_ptr->observers[j + 1];
+            }
+            shm_ptr->observer_count--;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&shm_ptr->observer_mutex);
+}
 void update_order_status(int order_id, const char* notification) {
     sem_wait(&shm_ptr->mutex);
     strncpy(shm_ptr->orders[order_id].notification, notification, 99);
@@ -116,12 +199,46 @@ void process_order(int order_id) {
     update_order_status(order_id, "Processing order...");
     sleep(5); // Simulate processing time
     
+    pthread_mutex_lock(&shm_ptr->mutex);
+    shm_ptr->orders[order_id].status = 1;
+    pthread_mutex_unlock(&shm_ptr->mutex);
+    
+    update_order_status(order_id, "Order completed!");
+}
+void process_order(int order_id) {
+    update_order_status(order_id, "Processing order...");
+    sleep(5); // Simulate processing time
+    
     sem_wait(&shm_ptr->mutex);
     shm_ptr->orders[order_id].status = 1;
     update_order_status(order_id, "Order completed!");
     sem_post(&shm_ptr->mutex);
 }
 
+void* kitchen_thread(void* arg) {
+    while(1) {
+        pthread_mutex_lock(&shm_ptr->mutex);
+        while(1) {
+            int order_to_process = -1;
+            for(int i = 0; i < shm_ptr->order_count; i++) {
+                if(shm_ptr->orders[i].status == 0) {
+                    order_to_process = i;
+                    shm_ptr->orders[i].status = 2;
+                    break;
+                }
+            }
+            
+            if(order_to_process == -1) {
+                pthread_cond_wait(&shm_ptr->order_cond, &shm_ptr->mutex);
+            } else {
+                pthread_mutex_unlock(&shm_ptr->mutex);
+                process_order(order_to_process);
+                break;
+            }
+        }
+    }
+    return NULL;
+}
 void* kitchen_thread(void* arg) {
     while(1) {
         sem_wait(&shm_ptr->mutex);
