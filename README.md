@@ -14,7 +14,7 @@ This is an operating system designed for restaurants. It contains three programs
 2. Run the following commands in the terminal:
 
    ```bash
-         chmod +x clients.sh staff.sh status.sh welcome.sh restaurant.sh
+         chmod +x clients staff status welcome restaurant
    ```
 
    to make the scripts executable
@@ -22,7 +22,7 @@ This is an operating system designed for restaurants. It contains three programs
    then run:
 
    ```bash
-          sudo mv clients.sh staff.sh status.sh welcome.sh restaurant.sh restaurant_system.c /usr/bin/
+          sudo mv clients staff status welcome restaurant restaurant_system.c /usr/bin/
    ```
 
    to move the scripts to the `/usr/bin/` directory to be able to run them from anywhere in the terminal
