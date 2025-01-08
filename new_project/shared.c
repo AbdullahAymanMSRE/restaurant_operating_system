@@ -48,3 +48,11 @@ void initialize_shared_memory(SharedMemory* shm) {
     shm->num_menu_items = sizeof(sample_menu) / sizeof(MenuItem);
     memcpy(shm->menu, sample_menu, sizeof(sample_menu));
 }
+
+void initialize_order_mutex(pthread_mutex_t* mutex) {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+    pthread_mutex_init(mutex, &attr);
+    pthread_mutexattr_destroy(&attr);
+}
