@@ -1,6 +1,4 @@
 #include "shared.h"
-#include <stdlib.h>
-#include <unistd.h>
 
 void *order_monitor_thread(void *arg)
 {
@@ -8,7 +6,6 @@ void *order_monitor_thread(void *arg)
 
     while (1)
     {
-        // printf("\033[H\033[J");
         printf("\n===== CURRENT ORDERS =====\n");
 
         pthread_mutex_lock(&shm->orders_mutex);
@@ -54,8 +51,20 @@ void *order_monitor_thread(void *arg)
             }
             pthread_mutex_unlock(&order->order_mutex);
         }
+        pthread_mutex_unlock(&shm->orders_mutex);
 
         printf("========================\n");
+        sleep(3); // Refresh every 3 seconds
+    }
+    return NULL;
+}
+
+void *status_update_thread(void *arg)
+{
+    SharedMemory *shm = (SharedMemory *)arg;
+
+    while (1)
+    {
         printf("\nEnter order ID to update (0 to exit): ");
         int order_id;
         scanf("%d", &order_id);
@@ -72,6 +81,7 @@ void *order_monitor_thread(void *arg)
         int choice;
         scanf("%d", &choice);
 
+        pthread_mutex_lock(&shm->orders_mutex);
         for (int i = 0; i < shm->num_orders; i++)
         {
             if (shm->orders[i].order_id == order_id)
@@ -99,6 +109,7 @@ void *order_monitor_thread(void *arg)
         }
         pthread_mutex_unlock(&shm->orders_mutex);
     }
+
     return NULL;
 }
 
@@ -109,6 +120,7 @@ int main()
     // Create threads for monitoring and updating orders
     pthread_t monitor_thread, update_thread;
     pthread_create(&monitor_thread, NULL, order_monitor_thread, shm);
+    pthread_create(&update_thread, NULL, status_update_thread, shm);
 
     // Wait for update thread to complete
     pthread_join(update_thread, NULL);
