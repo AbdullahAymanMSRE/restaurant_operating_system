@@ -1,0 +1,56 @@
+#!/bin/bash
+
+init_system() {
+    # Print welcome message 
+    ./bash_helpers/welcome.sh
+
+    # Compile the main C program
+    ./bash_helpers/compile.sh
+    if [ $? -ne 0 ]; then
+        echo "Compilation failed"
+        exit 1
+    fi
+    
+    # Initialize Memory
+    ./c_output/init_memory
+}
+
+show_menu() {
+    echo -e "\nPlease select the program you want to open:"
+    echo "1. Serve Clients"
+    echo "2. Show Status"
+    echo "3. Handle Orders"
+    echo "4. Exit"
+}
+
+main() {
+    init_system
+    
+    while true; do
+        show_menu
+        read -p "Enter choice: " choice
+        
+        case $choice in
+            1)
+                ./c_output/client
+                ;;
+            2)
+                ./c_output/display
+                ;;
+            3)
+                ./c_output/staff
+                ;;
+            4)
+                echo "Shutting down system..."
+                exit 0
+                ;;
+            *)
+                echo "Invalid choice"
+                ;;
+        esac
+    done
+}
+
+trap 'echo "Use option 4 to exit properly"; sleep 1' SIGINT SIGTERM
+
+main

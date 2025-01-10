@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "../header_files/shared.h"
 
 // Function that runs as a separate process for each order
 void order_process(SharedMemory* shm, int order_index) {

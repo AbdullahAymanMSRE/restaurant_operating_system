@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "../header_files/shared.h"
 
 int main(){
     SharedMemory* shm = attach_shared_memory();

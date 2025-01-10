@@ -1,5 +1,5 @@
-#include "shared.h"
-#include "order_process.h"
+#include "../header_files/shared.h"
+#include "../header_files/order_process.h"
 
 void *order_creation_thread(void *arg)
 {

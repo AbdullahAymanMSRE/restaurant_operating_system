@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "../header_files/shared.h"
 
 void *refresh_display(void *arg)
 {
