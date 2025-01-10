@@ -1,2 +1,2 @@
 *.o
-./c_output/
+c_output/
