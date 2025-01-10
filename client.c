@@ -27,15 +27,29 @@ void *order_creation_thread(void *arg)
         {
             printf("\nEnter item ID (0 to finish): ");
             int item_id;
-            scanf("%d", &item_id);
-
+            if (scanf("%d", &item_id) != 1)
+            {
+                printf("invalid input, please enter a number");
+                while (getchar() != '\n')
+                    ; // to neglect all the chars from the buffer
+                continue;
+            }
             if (item_id == 0)
                 break;
-
+            if (item_id < 1 || item_id > shm->num_menu_items)
+            {
+                printf("invalid input, please enter a valid choice");
+                continue;
+            }
             printf("Enter quantity: ");
             int quantity;
-            scanf("%d", &quantity);
-
+            if (scanf("%d", &quantity) != 1)
+            {
+                printf("invalid input, please enter a number");
+                while (getchar() != '\n')
+                    ; // to neglect all the chars from the buffer
+                continue;
+            }
             new_order.items[new_order.num_items].menu_item_id = item_id;
             new_order.items[new_order.num_items].quantity = quantity;
             new_order.num_items++;
@@ -63,8 +77,6 @@ void *order_creation_thread(void *arg)
 int main()
 {
     SharedMemory *shm = attach_shared_memory();
-
-    initialize_shared_memory(shm);
 
     // Create threads for order creation and menu display
     pthread_t order_thread, display_thread;
