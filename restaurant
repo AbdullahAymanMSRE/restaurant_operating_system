@@ -32,7 +32,7 @@ main() {
         
         case $choice in
             1)
-                ./c_output/client
+                ./bash_helpers/client.sh
                 ;;
             2)
                 ./c_output/display

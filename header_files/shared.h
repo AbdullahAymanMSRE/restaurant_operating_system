@@ -53,6 +53,7 @@ typedef struct
     OrderStatus status;
     time_t timestamp;
     pthread_mutex_t order_mutex; // Mutex specific to this order
+    double total_bill;
 } Order;
 
 // Structure for shared memory

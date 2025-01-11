@@ -1,94 +1,117 @@
 #include "../header_files/shared.h"
 #include "../header_files/order_process.h"
 
-void *order_creation_thread(void *arg)
+MenuItem *get_menu_item(SharedMemory *shm, int item_id)
+{
+    for (int i = 0; i < shm->num_menu_items; i++)
+    {
+        if (shm->menu[i].id == item_id)
+        {
+            return &shm->menu[i];
+        }
+    }
+    return NULL;
+}
+
+int *create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_count)
 {
     SharedMemory *shm = (SharedMemory *)arg;
 
-    while (1)
+    Order new_order = {0};
+    new_order.timestamp = time(NULL);
+    new_order.status = STATUS_NEW;
+    new_order.total_bill = 0;
+
+    // Add items to order
+    while (new_order.num_items < MAX_ITEMS && new_order.num_items < item_count)
     {
-        printf("\033[H\033[J");
+        int item_id = item_ids[new_order.num_items];
+        int quantity = quantities[new_order.num_items];
+        MenuItem *item = get_menu_item(shm, item_id);
 
-        Order new_order = {0};
-        new_order.timestamp = time(NULL);
-        new_order.status = STATUS_NEW;
-
-        printf("\n===== MENU =====\n");
-        for (int i = 0; i < shm->num_menu_items; i++)
-        {
-            printf("%d. %-20s $%.2f\n",
-                   shm->menu[i].id,
-                   shm->menu[i].name,
-                   shm->menu[i].price);
-        }
-        printf("===============\n");
-        // Add items to order
-        while (new_order.num_items < MAX_ITEMS)
-        {
-            printf("\nEnter item ID (0 to finish): ");
-            int item_id;
-            if (scanf("%d", &item_id) != 1)
-            {
-                printf("invalid input, please enter a number");
-                while (getchar() != '\n')
-                    ; // to neglect all the chars from the buffer
-                continue;
-            }
-            if (item_id == 0)
-                break;
-            if (item_id < 1 || item_id > shm->num_menu_items)
-            {
-                printf("invalid input, please enter a valid choice");
-                continue;
-            }
-            printf("Enter quantity: ");
-            int quantity;
-            if (scanf("%d", &quantity) != 1)
-            {
-                printf("invalid input, please enter a number");
-                while (getchar() != '\n')
-                    ; // to neglect all the chars from the buffer
-                continue;
-            }
-            new_order.items[new_order.num_items].menu_item_id = item_id;
-            new_order.items[new_order.num_items].quantity = quantity;
-            new_order.num_items++;
-        }
-
-        // Add order to shared memory with proper synchronization
-        pthread_mutex_lock(&shm->orders_mutex);
-        int order_index = shm->num_orders;
-        new_order.order_id = order_index + 1;
-        shm->orders[order_index] = new_order;
-        shm->num_orders++;
-
-        // Spawn process for this order
-        pid_t order_pid = spawn_order_process(shm, order_index);
-        shm->orders[order_index].process_id = order_pid;
-
-        pthread_mutex_unlock(&shm->orders_mutex);
-
-        printf("\nOrder #%d created successfully!\n", new_order.order_id);
+        new_order.items[new_order.num_items].menu_item_id = item_id;
+        new_order.items[new_order.num_items].quantity = quantity;
+        new_order.total_bill += quantity * item->price;
+        new_order.num_items++;
     }
 
-    return NULL;
+    // Add order to shared memory with proper synchronization
+    pthread_mutex_lock(&shm->orders_mutex);
+    int order_index = shm->num_orders;
+    new_order.order_id = order_index + 1;
+    shm->orders[order_index] = new_order;
+    shm->num_orders++;
+
+    // Spawn process for this order
+    pid_t order_pid = spawn_order_process(shm, order_index);
+    shm->orders[order_index].process_id = order_pid;
+
+    pthread_mutex_unlock(&shm->orders_mutex);
+
+    return new_order.order_index;  
+}
+
+void print_menu(SharedMemory *shm) {
+    for (int i = 0; i < shm->num_menu_items; i++) {
+        printf("%d. %-20s $%.2f\n",
+               shm->menu[i].id,
+               shm->menu[i].name,
+               shm->menu[i].price);
+    }
+}
+
+void print_menu_size(SharedMemory *shm) {
+    printf("%d\n", shm->num_menu_items);
+}
+
+void print_order_details(SharedMemory* shm,int order_index) {
+    Order* order = shm>orders[order_index];
+    printf("\nOrder #%d Details:\n", order->order_id);
+    printf("Items:\n");
+    
+    for (int i = 0; i < order->num_items; i++) {
+
+        MenuItem* item = get_menu_item(shm, order->items[i].menu_item_id);
+
+        printf("- %dx %s ($%.2f each)\n", 
+               order->items[i].quantity,
+               item->name,
+               order->items[i].price
+         );
+    }
+    printf("Total Bill: $%.2f\n", order->total_bill);
 }
 
 int main()
 {
     SharedMemory *shm = attach_shared_memory();
 
-    // Create threads for order creation and menu display
-    pthread_t order_thread, display_thread;
-    pthread_create(&order_thread, NULL, order_creation_thread, shm);
-    // pthread_create(&display_thread, NULL, menu_display_thread, shm);
-
-    // Wait for order thread to complete
-    pthread_join(order_thread, NULL);
-
-    // Cancel display thread
-    pthread_cancel(display_thread);
-    pthread_join(display_thread, NULL);
+    if (argc > 1) {
+        if (strcmp(argv[1], "--menu") == 0) {
+            print_menu(shm);
+        }
+        else if (strcmp(argv[1], "--size") == 0) {
+            print_menu_size(shm);
+        }
+        else if(strcmp(argv[1], "--order") == 0){
+          if (argc < 4 || (argc - 2) % 2 != 0) {
+              printf("Invalid number of arguments for create_order\n");
+              exit(1);
+          }
+          
+          int item_count = (argc - 2) / 2;
+          int item_ids[MAX_ITEMS];
+          int quantities[MAX_ITEMS];
+          
+          for(int i = 0; i < item_count; i++) {
+              item_ids[i] = atoi(argv[2 + i*2]);
+              quantities[i] = atoi(argv[3 + i*2]);
+          }
+          
+          int order_index = create_order(item_ids, quantities, item_count);
+          print_order_details(order_id);
+        }
+    }
 
     detach_shared_memory(shm);
     return 0;
