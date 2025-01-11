@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -d "~/.restaurant" ]; then
-  mkdir ~/.restaurant
+  mkdir -p  ~/.restaurant
 fi
 
 if [ -f "/usr/bin/restaurant" ]; then

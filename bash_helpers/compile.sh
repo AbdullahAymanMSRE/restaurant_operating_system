@@ -2,7 +2,7 @@
 
 # Create output directory if it does not exist
 if [ ! -d "~/.restaurant/c_output" ]; then
-  mkdir ~/.restaurant/c_output
+  mkdir -p  ~/.restaurant/c_output
 fi
 
 gcc -c ~/.restaurant/c_code/shared.c -o ~/.restaurant/c_output/shared.o -pthread
