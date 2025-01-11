@@ -13,10 +13,8 @@ MenuItem *get_menu_item(SharedMemory *shm, int item_id)
     return NULL;
 }
 
-int *create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_count)
+int create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_count)
 {
-    SharedMemory *shm = (SharedMemory *)arg;
-
     Order new_order = {0};
     new_order.timestamp = time(NULL);
     new_order.status = STATUS_NEW;
@@ -48,7 +46,7 @@ int *create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_
 
     pthread_mutex_unlock(&shm->orders_mutex);
 
-    return new_order.order_index;  
+    return order_index;  
 }
 
 void print_menu(SharedMemory *shm) {
@@ -65,7 +63,7 @@ void print_menu_size(SharedMemory *shm) {
 }
 
 void print_order_details(SharedMemory* shm,int order_index) {
-    Order* order = shm>orders[order_index];
+    Order* order = shm->orders[order_index];
     printf("\nOrder #%d Details:\n", order->order_id);
     printf("Items:\n");
     
@@ -76,13 +74,13 @@ void print_order_details(SharedMemory* shm,int order_index) {
         printf("- %dx %s ($%.2f each)\n", 
                order->items[i].quantity,
                item->name,
-               order->items[i].price
+               item->price
          );
     }
     printf("Total Bill: $%.2f\n", order->total_bill);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     SharedMemory *shm = attach_shared_memory();
 

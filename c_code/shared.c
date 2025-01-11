@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "../header_files/shared.h"
 
 SharedMemory* attach_shared_memory() {
     // Create or get shared memory segment
