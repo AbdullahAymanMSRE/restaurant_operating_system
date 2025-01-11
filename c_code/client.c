@@ -108,7 +108,7 @@ int main()
               quantities[i] = atoi(argv[3 + i*2]);
           }
           
-          int order_index = create_order(item_ids, quantities, item_count);
+          int order_index = create_order(shm, item_ids, quantities, item_count);
           print_order_details(order_id);
         }
     }
