@@ -27,7 +27,7 @@ do
             exit 0
         fi
 
-        if ! validate_number "$item_id"; then
+        if ! validate_number "$item"; then
             continue
         fi
 
