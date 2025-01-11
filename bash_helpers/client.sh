@@ -35,7 +35,7 @@ do
             break
         fi
 
-        if [ "$item_id" -lt 1 ] || [ "$item_id" -gt "$menu_size" ]; then
+        if [ "$item" -lt 1 ] || [ "$item" -gt "$menu_size" ]; then
             echo "Invalid item ID. Please choose between 1 and $menu_size"
             continue
         fi
