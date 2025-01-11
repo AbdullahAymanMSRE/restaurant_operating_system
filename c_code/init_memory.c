@@ -5,7 +5,7 @@ int main(){
 
     // If shared memory already exists, don't initialize it
     /* if (shmid >= 0) { */
-      SharedMemory* shm = (SharedMemory*)shmat(shmid, NULL, 0);
+      SharedMemory* shm = attach_shared_memory();
       initialize_shared_memory(shm);
     /* } */
 
