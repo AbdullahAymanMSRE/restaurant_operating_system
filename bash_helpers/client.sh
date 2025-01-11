@@ -9,13 +9,13 @@ validate_number() {
     return 0
 }
 
-menu_size=$(c_output/client --size)
+menu_size=$(~/.restaurant/c_output/client --size)
 
 while true;
 do
     clear
     echo -e "\n===== MENU ====="
-    c_output/client --menu
+    ~/.restaurant/c_output/client --menu
     echo "==============="
 
     items=()
@@ -52,7 +52,7 @@ do
 
     if [ ! -z "$items" ]; then   
 
-      c_output/client --order "${items[@]}" "${quantities[@]}"
+      ~/.restaurant/c_output/client --order "${items[@]}" "${quantities[@]}"
 
       sleep 2
     fi
