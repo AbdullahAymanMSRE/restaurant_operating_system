@@ -42,6 +42,7 @@ main() {
                 ;;
             4)
                 echo "Shutting down system..."
+                ~/.restaurant/c_output/init_memory --erase
                 exit 0
                 ;;
             *)

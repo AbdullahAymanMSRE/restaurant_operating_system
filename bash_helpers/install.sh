@@ -13,4 +13,3 @@ cp -r ./* ~/.restaurant
 
 echo "Installation complete"
 echo "Type 'restaurant' to run the program"
-

@@ -13,7 +13,7 @@ MenuItem *get_menu_item(SharedMemory *shm, int item_id)
     return NULL;
 }
 
-int create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_count)
+int create_order(SharedMemory *shm, int item_ids[], int quantities[], int item_count)
 {
     Order new_order = {0};
     new_order.timestamp = time(NULL);
@@ -46,11 +46,13 @@ int create_order(SharedMemory* shm, int item_ids[], int quantities[], int item_c
 
     pthread_mutex_unlock(&shm->orders_mutex);
 
-    return order_index;  
+    return order_index;
 }
 
-void print_menu(SharedMemory *shm) {
-    for (int i = 0; i < shm->num_menu_items; i++) {
+void print_menu(SharedMemory *shm)
+{
+    for (int i = 0; i < shm->num_menu_items; i++)
+    {
         printf("%d. %-20s $%.2f\n",
                shm->menu[i].id,
                shm->menu[i].name,
@@ -58,24 +60,26 @@ void print_menu(SharedMemory *shm) {
     }
 }
 
-void print_menu_size(SharedMemory *shm) {
+void print_menu_size(SharedMemory *shm)
+{
     printf("%d\n", shm->num_menu_items);
 }
 
-void print_order_details(SharedMemory* shm,int order_index) {
+void print_order_details(SharedMemory *shm, int order_index)
+{
     Order order = shm->orders[order_index];
     printf("\nOrder #%d Details:\n", order.order_id);
     printf("Items:\n");
-    
-    for (int i = 0; i < order.num_items; i++) {
 
-        MenuItem* item = get_menu_item(shm, order.items[i].menu_item_id);
+    for (int i = 0; i < order.num_items; i++)
+    {
 
-        printf("- %dx %s ($%.2f each)\n", 
+        MenuItem *item = get_menu_item(shm, order.items[i].menu_item_id);
+
+        printf("- %dx %s ($%.2f each)\n",
                order.items[i].quantity,
                item->name,
-               item->price
-         );
+               item->price);
     }
     printf("Total Bill: $%.2f\n", order.total_bill);
 }
@@ -84,30 +88,36 @@ int main(int argc, char *argv[])
 {
     SharedMemory *shm = attach_shared_memory();
 
-    if (argc > 1) {
-        if (strcmp(argv[1], "--menu") == 0) {
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "--menu") == 0)
+        {
             print_menu(shm);
         }
-        else if (strcmp(argv[1], "--size") == 0) {
+        else if (strcmp(argv[1], "--size") == 0)
+        {
             print_menu_size(shm);
         }
-        else if(strcmp(argv[1], "--order") == 0){
-          if (argc < 4 || (argc - 2) % 2 != 0) {
-              printf("Invalid number of arguments for create_order\n");
-              exit(1);
-          }
-          
-          int item_count = (argc - 2) / 2;
-          int item_ids[MAX_ITEMS];
-          int quantities[MAX_ITEMS];
-          
-          for(int i = 0; i < item_count; i++) {
-              item_ids[i] = atoi(argv[2 + i]);
-              quantities[i] = atoi(argv[2 + item_count + i]);
-          }
-          
-          int order_index = create_order(shm, item_ids, quantities, item_count);
-          print_order_details(shm,order_index);
+        else if (strcmp(argv[1], "--order") == 0)
+        {
+            if (argc < 4 || (argc - 2) % 2 != 0)
+            {
+                printf("Invalid number of arguments for create_order\n");
+                exit(1);
+            }
+
+            int item_count = (argc - 2) / 2;
+            int item_ids[MAX_ITEMS];
+            int quantities[MAX_ITEMS];
+
+            for (int i = 0; i < item_count; i++)
+            {
+                item_ids[i] = atoi(argv[2 + i]);
+                quantities[i] = atoi(argv[2 + item_count + i]);
+            }
+
+            int order_index = create_order(shm, item_ids, quantities, item_count);
+            print_order_details(shm, order_index);
         }
     }
 

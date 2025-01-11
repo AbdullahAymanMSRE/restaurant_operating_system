@@ -13,7 +13,8 @@ menu_size=$(~/.restaurant/c_output/client --size)
 
 while true;
 do
-    clear
+    clear 
+    ~/.restaurant/bash_helpers/welcome.sh
     echo -e "\n===== MENU ====="
     ~/.restaurant/c_output/client --menu
     echo "==============="
@@ -54,7 +55,7 @@ do
 
       ~/.restaurant/c_output/client --order "${items[@]}" "${quantities[@]}"
 
-      sleep 2
+      sleep 5
     fi
 done
 

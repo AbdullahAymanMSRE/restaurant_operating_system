@@ -54,7 +54,7 @@ void *order_monitor_thread(void *arg)
         pthread_mutex_unlock(&shm->orders_mutex);
 
         printf("========================\n");
-        sleep(3); // Refresh every 3 seconds
+        sleep(5); // Refresh every 5 seconds
     }
     return NULL;
 }
