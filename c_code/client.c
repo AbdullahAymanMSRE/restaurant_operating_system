@@ -77,7 +77,7 @@ void print_order_details(SharedMemory* shm,int order_index) {
                item->price
          );
     }
-    printf("Total Bill: $%.2f\n", order->total_bill);
+    printf("Total Bill: $%.2f\n", order.total_bill);
 }
 
 int main(int argc, char *argv[])
