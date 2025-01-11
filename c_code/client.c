@@ -109,7 +109,7 @@ int main()
           }
           
           int order_index = create_order(shm, item_ids, quantities, item_count);
-          print_order_details(order_id);
+          print_order_details(shm,order_index);
         }
     }
 
