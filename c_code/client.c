@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
           
           for(int i = 0; i < item_count; i++) {
               item_ids[i] = atoi(argv[2 + i*2]);
-              quantities[i] = atoi(argv[3 + i*2]);
+              quantities[i] = atoi(argv[2 + item_count + i*2]);
           }
           
           int order_index = create_order(shm, item_ids, quantities, item_count);
