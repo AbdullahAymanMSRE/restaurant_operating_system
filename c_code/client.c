@@ -63,16 +63,16 @@ void print_menu_size(SharedMemory *shm) {
 }
 
 void print_order_details(SharedMemory* shm,int order_index) {
-    Order* order = shm->orders[order_index];
-    printf("\nOrder #%d Details:\n", order->order_id);
+    Order order = shm->orders[order_index];
+    printf("\nOrder #%d Details:\n", order.order_id);
     printf("Items:\n");
     
-    for (int i = 0; i < order->num_items; i++) {
+    for (int i = 0; i < order.num_items; i++) {
 
-        MenuItem* item = get_menu_item(shm, order->items[i].menu_item_id);
+        MenuItem* item = get_menu_item(shm, order.items[i].menu_item_id);
 
         printf("- %dx %s ($%.2f each)\n", 
-               order->items[i].quantity,
+               order.items[i].quantity,
                item->name,
                item->price
          );
