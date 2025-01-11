@@ -4,9 +4,9 @@
 
 This is an operating system designed for restaurants. It contains three programs:
 
-- one to serve clients
-- one for staff members to maintain orders
-- one to show orders' statuses
+- One to serve clients
+- One for staff members to maintain orders
+- One to show orders' statuses
 
 ## Installation
 
