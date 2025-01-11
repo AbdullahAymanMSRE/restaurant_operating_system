@@ -2,17 +2,17 @@
 
 init_system() {
     # Print welcome message 
-    ~/bash_helpers/welcome.sh
+    ~/.restaurant/bash_helpers/welcome.sh
 
     # Compile the main C program
-    ~/bash_helpers/compile.sh
+    ~/.restaurant/bash_helpers/compile.sh
     if [ $? -ne 0 ]; then
         echo "Compilation failed"
         exit 1
     fi
     
     # Initialize Memory
-    ~/c_output/init_memory
+    ~/.restaurant/c_output/init_memory
 }
 
 show_menu() {
@@ -32,13 +32,13 @@ main() {
         
         case $choice in
             1)
-                ~/bash_helpers/client.sh
+                ~/.restaurant/bash_helpers/client.sh
                 ;;
             2)
-                ~/c_output/display
+                ~/.restaurant/c_output/display
                 ;;
             3)
-                ~/c_output/staff
+                ~/.restaurant/c_output/staff
                 ;;
             4)
                 echo "Shutting down system..."
