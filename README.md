@@ -14,7 +14,7 @@ This is an operating system designed for restaurants. It contains three programs
 2. Run the following commands in the terminal:
 
    ```bash
-          ./bash_helpers/install.sh
+   ./bash_helpers/install.sh
    ```
 
    to install the project, then you are done.
